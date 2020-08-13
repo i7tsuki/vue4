@@ -1,18 +1,35 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <router-view></router-view>
+    <div id="footer">Copyright ©2019 〇〇 inc. All rights reserved.</div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Login from './components/Login.vue'
+import Signup from './components/Signup.vue'
 
 export default {
   name: 'App',
-  components: {
-    HelloWorld
-  }
+  routes: [
+    {
+      path: '/',
+      redirect: {
+        name: 'login'
+      }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: Login
+    },
+    {
+      path: '/signup',
+      name: 'Signup',
+      component: Signup
+    }
+  ],
 }
 </script>
 
