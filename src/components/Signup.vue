@@ -21,8 +21,20 @@ export default {
   },
   methods: {
     signup: function() {
-      this.$store.commit('createUserAccount', {
-        'userName': this.userName, 'mail': this.mail, 'password': this.password
+      if (this.userName.trim().length < 1) {
+        alert('ユーザー名を入力してください。');
+        return;
+      }
+      if ((/^[A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]{1,}\.[A-Za-z0-9]{1,}$/).test(this.mail) === false) {
+        alert('メールアドレスを正しく入力してください。');
+        return;
+      }
+      if (this.password.trim().length < 6) {
+        alert('パスワードは6文字以上で入力してください。');
+        return;
+      } 
+      this.$store.dispatch('createUserAccount', {
+        'userName': this.userName.trim(), 'mail': this.mail.trim(), 'password': this.password.trim()
       });
     },
     GotoLogin: function () {
