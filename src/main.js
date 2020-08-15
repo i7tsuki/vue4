@@ -1,5 +1,5 @@
-import Firebase from 'firebase'
-import { firebaseConfig } from './config/firebase-config'
+
+import Firebase from './config/firebase-config'
 import Vue from 'vue'
 import Vuex from 'vuex'
 import VueRouter from 'vue-router'
@@ -8,9 +8,6 @@ import App from './App.vue'
 Vue.config.productionTip = false
 Vue.use(Vuex)
 Vue.use(VueRouter)
-
-// Initialize Firebase
-Firebase.initializeApp(firebaseConfig);
 
 const store = new Vuex.Store({
   state: {

@@ -10,6 +10,8 @@
 </template>
 
 <script>
+import { isMailAdress } from '../plugin/definiton';
+
 export default {
   name: 'Signup',
   data: function() {
@@ -25,7 +27,7 @@ export default {
         alert('ユーザー名を入力してください。');
         return;
       }
-      if ((/^[A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]{1,}\.[A-Za-z0-9]{1,}$/).test(this.mail) === false) {
+      if (!(isMailAdress(this.mail))) {
         alert('メールアドレスを正しく入力してください。');
         return;
       }
