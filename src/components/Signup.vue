@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { isMailAdress } from '../plugin/definiton';
+import { isMailAdress, isPassword } from '../plugin/definiton';
 
 export default {
   name: 'Signup',
@@ -31,7 +31,7 @@ export default {
         alert('メールアドレスを正しく入力してください。');
         return;
       }
-      if (this.password.trim().length < 6) {
+      if (!(isPassword(this.password))) {
         alert('パスワードは6文字以上で入力してください。');
         return;
       } 
