@@ -57,6 +57,15 @@ const store = new Vuex.Store({
           alert("Create Account");
         })
         .catch(error => alert(error));
+    },
+    login(context, argument) {
+      Firebase
+        .auth()
+        .signInWithEmailAndPassword(argument.mail, argument.password)
+        .then(() => {
+          alert("ログイン成功!※次の画面は未作成");
+        })
+        .catch(error => alert(error));
     }
   },
 });
