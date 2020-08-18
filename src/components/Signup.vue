@@ -1,5 +1,5 @@
 <template>
-  <div class="Signup">
+  <div class="signup">
     <h1>新規登録画面</h1>
     <p><label>ユーザー名<input type="text" placeholder="userName" v-model="userName"></label></p>
     <p><label>メールアドレス<input type="email" placeholder="E-mail" v-model="mail"></label></p>
@@ -35,9 +35,29 @@ export default {
         alert('パスワードは6文字以上で入力してください。');
         return;
       } 
-      this.$store.dispatch('createUserAccount', {
-        'userName': this.userName.trim(), 'mail': this.mail.trim(), 'password': this.password.trim()
-      });
+      const that = this;
+      new Promise((resolve) => {
+        this.$store.dispatch('createUserAccount', {
+          'userName': this.userName.trim(), 'mail': this.mail.trim(), 'password': this.password.trim()
+        }).then(() => {
+          resolve();
+        });
+      }).then(function() {
+        return new Promise((resolve, reject) => {
+          if (that.$store.state.loginStatus) {
+            that.$store.dispatch('login', {
+              'userName': that.userName.trim(), 'mail': that.mail.trim(), 'password': that.password.trim()
+            }).then(() => {
+              resolve();
+            })
+          }
+          else {
+            reject('ログインできませんでした。');
+          }
+        });
+      }).then(function() {
+        that.$router.push('/dashboard');
+      }).catch(error => alert(error));
     },
     GotoLogin: function () {
       this.$router.push('/');

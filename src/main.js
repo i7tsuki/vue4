@@ -9,63 +9,99 @@ Vue.config.productionTip = false
 Vue.use(Vuex)
 Vue.use(VueRouter)
 
+const dataList = 'users';
+
 const store = new Vuex.Store({
   state: {
     userName: null,
     mail: null,
     password: null,
+    wallet: null,
+    loginStatus: false,
   },
   mutations: {
     setUser(state, argument) {
       state.userName = argument.userName;
       state.mail = argument.mail;
       state.password = argument.passwords;
+      state.wallet = 100,
+      state.loginStatus = true;
     },
   }, 
   actions: {
     createUserAccount(context, argument) {
-      const dataList = 'users';
-      new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         Firebase.database().ref(dataList)
           .orderByChild('mail')
           .startAt(argument.mail).endAt(argument.mail)
           .once('value', function(snapshot) {      
             //既にメールアドレスが登録済みのユーザでないかどうか確認    
             if (snapshot.exists()) { //登録済みの場合
+              store.state.loginStatus = false;
               reject(new Error('既にメールアドレスが登録済みです!'));
             } else { //未登録の場合
               resolve(); 
             }
           });
-        })
-        .then(function() {
-          Firebase
-            .auth()
-            .createUserWithEmailAndPassword(argument.mail, argument.password)
-            .then(() => {
-              context.commit('setUser', {
-                'userName': argument.userName,
-                'mail': argument.mail,
-                'password': argument.password
+        }).then(function() {
+          return new Promise((resolve) => {
+            Firebase
+              .auth()
+              .createUserWithEmailAndPassword(argument.mail, argument.password)
+              .then(() => {
+                context.commit('setUser', {
+                  'userName': argument.userName,
+                  'mail': argument.mail,
+                  'password': argument.password, 
               });
-            });
-          Firebase.database().ref(dataList).push({
-            'userName': argument.userName,
-            'mail': argument.mail,
-            'password': argument.password,
+              resolve();
+              });
           });
-          alert("Create Account");
-        })
-        .catch(error => alert(error));
+        }).then(function() {
+          return new Promise((resolve) => {
+            Firebase.database().ref(dataList).push({
+              'userName': argument.userName,
+              'mail': argument.mail,
+              'password': argument.password,
+              'wallet': 100,
+            }).then(() => {
+              alert("Create Account");
+              resolve();
+            });
+          })
+        }).catch(error => alert(error));
     },
     login(context, argument) {
-      Firebase
-        .auth()
-        .signInWithEmailAndPassword(argument.mail, argument.password)
-        .then(() => {
-          alert("ログイン成功!※次の画面は未作成");
-        })
-        .catch(error => alert(error));
+      let userName;
+      return new Promise((resolve) => {
+        Firebase
+          .auth()
+          .signInWithEmailAndPassword(argument.mail, argument.password)
+          .then(() => {
+            resolve();
+          });
+      }).then(function() {
+        return new Promise((resolve) => {
+          Firebase.database().ref(dataList)
+            .orderByChild('mail')
+            .startAt(argument.mail).endAt(argument.mail)
+            .once('value', function(snapshot) {
+              snapshot.forEach(function(childSnapshot) {
+                userName = childSnapshot.val().userName;
+                resolve();
+              });
+            });
+        });
+      }).then(function() {
+        return new Promise((resolve) => {
+          context.commit('setUser', {
+          'userName': userName,
+          'mail': argument.mail,
+          'password': argument.password
+          });
+          resolve();
+        });
+      }).catch(error => alert(error));
     }
   },
 });

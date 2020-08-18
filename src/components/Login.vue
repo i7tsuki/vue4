@@ -29,9 +29,18 @@ export default {
         alert('パスワードを正しく入力してください。');
         return;
       }
-      this.$store.dispatch('login', {
-        'mail': this.mail.trim(), 'password': this.password.trim()
-      });
+      const that = this;
+      new Promise((resolve) => {
+        this.$store.dispatch('login', {
+          'mail': this.mail.trim(), 'password': this.password.trim()
+        }).then(() => {
+          resolve();
+        });
+      }).then(function() {
+        if (that.$store.state.loginStatus) {
+          that.$router.push('/dashboard');
+        }
+      }).catch(error => alert(error));
     },
     GotoSignup: function() {
       this.$router.push('/signup');
