@@ -18,7 +18,8 @@ export default {
     return {
       userName: '',
       mail: '',
-      password: ''  
+      password: '',
+      isMailAddress: null,  
     }
   },
   methods: {
@@ -36,25 +37,25 @@ export default {
         return;
       } 
       const that = this;
-      new Promise((resolve) => {
-        this.$store.dispatch('createUserAccount', {
-          'userName': this.userName.trim(), 'mail': this.mail.trim(), 'password': this.password.trim()
-        }).then(() => {
-          resolve();
+      Promise.resolve().then(function() {
+        return new Promise(function (resolve) {
+          that.$store.dispatch('createUserAccount', {
+            'userName': that.userName.trim(), 'mail': that.mail.trim(), 'password': that.password.trim()
+          }).then(function() {
+            resolve();
+          });
         });
       }).then(function() {
-        return new Promise((resolve, reject) => {
-          if (that.$store.state.loginStatus) {
-            that.$store.dispatch('login', {
-              'userName': that.userName.trim(), 'mail': that.mail.trim(), 'password': that.password.trim()
-            }).then(() => {
-              resolve();
-            })
-          }
-          else {
-            reject('ログインできませんでした。');
-          }
-        });
+        if (that.$store.state.loginStatus) {
+          that.$store.dispatch('login', {
+            'userName': that.userName.trim(), 'mail': that.mail.trim(), 'password': that.password.trim()
+          }).then(() => {
+            console.log('ログインしました。');
+          })
+        }
+        else {
+            throw new Error('ログインできませんでした。');
+        }
       }).then(function() {
         that.$router.push('/dashboard');
       }).catch(error => alert(error));

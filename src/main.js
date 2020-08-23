@@ -18,6 +18,7 @@ const store = new Vuex.Store({
     password: null,
     wallet: null,
     loginStatus: false,
+    isMailAddress: null,
   },
   mutations: {
     setUser(state, argument) {
@@ -27,24 +28,39 @@ const store = new Vuex.Store({
       state.wallet = 100,
       state.loginStatus = true;
     },
+    setIsMailAddress(state, isMailAddress) {
+      if (isMailAddress) {
+        state.loginStatus = false;
+        state.isMailAddress = true;
+      } else {
+        state.isMailAddress = false;
+      }
+    }
   }, 
   actions: {
-    createUserAccount(context, argument) {
-      return new Promise((resolve, reject) => {
+    async readUserByEmail(context, mail) {
+     return new Promise((resolve) => {
         Firebase.database().ref(dataList)
           .orderByChild('mail')
-          .startAt(argument.mail).endAt(argument.mail)
-          .once('value', function(snapshot) {      
+          .startAt(mail).endAt(mail)
+          .once('value', function(snapshot) {  
             //既にメールアドレスが登録済みのユーザでないかどうか確認    
             if (snapshot.exists()) { //登録済みの場合
-              store.state.loginStatus = false;
-              reject(new Error('既にメールアドレスが登録済みです!'));
+              context.commit('setIsMailAddress', true);
             } else { //未登録の場合
-              resolve(); 
+              context.commit('setIsMailAddress', false);
             }
-          });
-        }).then(function() {
-          return new Promise((resolve) => {
+          }).catch(error => alert(error));
+        resolve();
+      });
+    },
+    async createUserAccount(context, argument) {
+      await context.dispatch('readUserByEmail', argument.mail
+      ).then(function() {
+        if (context.getters.getStateIsMailAddress) {
+          throw new Error('既にメールアドレスが登録済みです!');
+        } else {
+          return new Promise(function (resolve) {
             Firebase
               .auth()
               .createUserWithEmailAndPassword(argument.mail, argument.password)
@@ -53,12 +69,10 @@ const store = new Vuex.Store({
                   'userName': argument.userName,
                   'mail': argument.mail,
                   'password': argument.password, 
+                });
+                resolve();
               });
-              resolve();
-              });
-          });
-        }).then(function() {
-          return new Promise((resolve) => {
+          }).then(function() {
             Firebase.database().ref(dataList).push({
               'userName': argument.userName,
               'mail': argument.mail,
@@ -66,10 +80,10 @@ const store = new Vuex.Store({
               'wallet': 100,
             }).then(() => {
               alert("Create Account");
-              resolve();
             });
-          })
-        }).catch(error => alert(error));
+          });
+        }
+      }).catch(error => alert(error));
     },
     login(context, argument) {
       let userName;
@@ -93,17 +107,19 @@ const store = new Vuex.Store({
             });
         });
       }).then(function() {
-        return new Promise((resolve) => {
-          context.commit('setUser', {
+        context.commit('setUser', {
           'userName': userName,
           'mail': argument.mail,
           'password': argument.password
-          });
-          resolve();
         });
       }).catch(error => alert(error));
     }
   },
+  getters: {
+    getStateIsMailAddress: function(state) {
+      return state.isMailAddress
+    }
+  }
 });
 
 const router = new VueRouter({
