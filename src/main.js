@@ -46,33 +46,36 @@ const store = new Vuex.Store({
               });
             }
           }).then(function() {
-            context.getters.mail;
             resolve();
           }).catch(error => alert(error));
       });
     },
     async createUserEmailAndPassword(context, argument) {
-      return new Promise(resolve => {
-        Firebase
-          .auth()
-          .createUserWithEmailAndPassword(argument.mail, argument.password)
-          .then(() => {
-            context.commit('setUser', {
-              userName: argument.userName,
-              mail: argument.mail,
-              password: argument.password, 
+        const localSetUser = new Promise(resolve => {
+          Firebase
+            .auth()
+            .createUserWithEmailAndPassword(argument.mail, argument.password)
+            .then(() => {
+              context.commit('setUser', {
+                userName: argument.userName,
+                mail: argument.mail,
+                password: argument.password, 
+              });
+              resolve();
             });
-            resolve();
-          });
-        }).then(function() {
+        });
+        const dbSetUser = new Promise(resolve => {
           Firebase.database().ref(dataList).push({
             userName: argument.userName,
             mail: argument.mail,
             password: argument.password,
             wallet: 100,
           }).then(() => {
-            alert("Create Account");
+            resolve();
           });
+        });
+        return Promise.all([localSetUser, dbSetUser]).then(() => {
+          alert("Create Account");
         }).catch(error => alert(error));
     },
     async createUserAccount(context, argument) {
@@ -95,32 +98,33 @@ const store = new Vuex.Store({
     },
     async loginEmailAndPassword(context, argument) {
       let userName;
-      return new Promise((resolve) => {
+      const signIn = new Promise((resolve) => {
         Firebase
           .auth()
           .signInWithEmailAndPassword(argument.mail, argument.password)
           .then(() => {
             resolve();
           });
-      }).then(function() {
-        return new Promise((resolve) => {
-          Firebase.database().ref(dataList)
-            .orderByChild('mail')
-            .startAt(argument.mail).endAt(argument.mail)
-            .once('value', function(snapshot) {
-              snapshot.forEach(function(childSnapshot) {
-                userName = childSnapshot.val().userName;
-                resolve();
-              });
+      });
+      const getUserName = new Promise((resolve) => {
+        Firebase.database().ref(dataList)
+          .orderByChild('mail')
+          .startAt(argument.mail).endAt(argument.mail)
+          .once('value', function(snapshot) {
+            snapshot.forEach(function(childSnapshot) {
+              userName = childSnapshot.val().userName;
+              resolve();
             });
-        });
-      }).then(function() {
-        context.commit('setUser', {
-          userName: userName,
-          mail: argument.mail,
-          password: argument.password
-        });
-      }).catch(error => alert(error));
+          })
+      });
+      return Promise.all([signIn, getUserName])
+        .then(function() {
+          context.commit('setUser', {
+            userName: userName,
+            mail: argument.mail,
+            password: argument.password
+          });
+        }).catch(error => alert(error));
     }
   },
   getters: {

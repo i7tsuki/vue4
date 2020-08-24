@@ -37,6 +37,7 @@ export default {
           resolve();
         });
       }).then(function() {
+        console.log(that.$store.state.loginStatus);
         if (that.$store.state.loginStatus) {
           that.$router.push('/dashboard');
         }
