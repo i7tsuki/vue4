@@ -37,19 +37,18 @@ export default {
         return;
       } 
       const that = this;
+      const user = {
+        userName: that.userName.trim(), mail: that.mail.trim(), password: that.password.trim()
+      };
       Promise.resolve().then(function() {
         return new Promise(function (resolve) {
-          that.$store.dispatch('createUserAccount', {
-            'userName': that.userName.trim(), 'mail': that.mail.trim(), 'password': that.password.trim()
-          }).then(function() {
+          that.$store.dispatch('createUserAccount', user).then(() => {
             resolve();
           });
         });
       }).then(function() {
         if (that.$store.state.loginStatus) {
-          that.$store.dispatch('login', {
-            'userName': that.userName.trim(), 'mail': that.mail.trim(), 'password': that.password.trim()
-          }).then(() => {
+          that.$store.dispatch('login', user).then(() => {
             console.log('ログインしました。');
           })
         }

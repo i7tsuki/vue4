@@ -32,7 +32,7 @@ export default {
       const that = this;
       new Promise((resolve) => {
         this.$store.dispatch('login', {
-          'mail': this.mail.trim(), 'password': this.password.trim()
+          mail: this.mail.trim(), password: this.password.trim()
         }).then(() => {
           resolve();
         });
