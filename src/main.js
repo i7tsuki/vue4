@@ -46,43 +46,54 @@ const store = new Vuex.Store({
               });
             }
           }).then(function() {
-            context.getters.mail
+            context.getters.mail;
             resolve();
-          });
+          }).catch(error => alert(error));
       });
     },
-    async createUserAccount(context, argument) {
-      await context.dispatch('readUserByEmail', argument.mail
-      ).then(function() {
-        if (context.getters.mail !== null) {
-          throw new Error('既にメールアドレスが登録済みです!');
-        } else {
-          return new Promise((resolve) => {
-            Firebase
-              .auth()
-              .createUserWithEmailAndPassword(argument.mail, argument.password)
-              .then(() => {
-                context.commit('setUser', {
-                  userName: argument.userName,
-                  mail: argument.mail,
-                  password: argument.password, 
-                });
-                resolve();
-              });
-          }).then(function() {
-            Firebase.database().ref(dataList).push({
+    async createUserEmailAndPassword(context, argument) {
+      return new Promise(resolve => {
+        Firebase
+          .auth()
+          .createUserWithEmailAndPassword(argument.mail, argument.password)
+          .then(() => {
+            context.commit('setUser', {
               userName: argument.userName,
               mail: argument.mail,
-              password: argument.password,
-              wallet: 100,
-            }).then(() => {
-              alert("Create Account");
+              password: argument.password, 
             });
+            resolve();
           });
-        }
-      }).catch(error => alert(error));
+        }).then(function() {
+          Firebase.database().ref(dataList).push({
+            userName: argument.userName,
+            mail: argument.mail,
+            password: argument.password,
+            wallet: 100,
+          }).then(() => {
+            alert("Create Account");
+          });
+        }).catch(error => alert(error));
     },
-    login(context, argument) {
+    async createUserAccount(context, argument) {
+      await context.dispatch('readUserByEmail', argument.mail);
+      if (context.getters.mail !== null) {
+        throw new Error('既にメールアドレスが登録済みです!');
+      } else {
+        await context.dispatch('createUserEmailAndPassword', {
+          userName: argument.userName,
+          mail: argument.mail,
+          password: argument.password, 
+        });
+      }
+    },
+    async login(context, argument) {
+      await context.dispatch('loginEmailAndPassword', {
+        mail: argument.mail,
+        password: argument.password, 
+      });
+    },
+    async loginEmailAndPassword(context, argument) {
       let userName;
       return new Promise((resolve) => {
         Firebase
