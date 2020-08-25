@@ -30,28 +30,24 @@ const store = new Vuex.Store({
   }, 
   actions: {
     async readUserByEmail(context, mail) {
-     return new Promise((resolve) => {
-        Firebase.database().ref(dataList)
-          .orderByChild('mail')
-          .startAt(mail).endAt(mail)
-          .once('value', function(snapshot) {
-            //既にメールアドレスが登録済みのユーザでないかどうか確認    
-            if (snapshot.exists()) { //登録済みの場合
-              context.commit('setUser', {
-                mail: mail,
-              });
-            } else { //未登録の場合
-              context.commit('setUser', {
-                mail: null,
-              });
-            }
-          }).then(function() {
-            resolve();
-          }).catch(error => alert(error));
-      });
+      Firebase.database().ref(dataList)
+        .orderByChild('mail')
+        .startAt(mail).endAt(mail)
+        .once('value', function(snapshot) {
+          //既にメールアドレスが登録済みのユーザでないかどうか確認    
+          if (snapshot.exists()) { //登録済みの場合
+            context.commit('setUser', {
+              mail: mail,
+            });
+          } else { //未登録の場合
+            context.commit('setUser', {
+              mail: null,
+            });
+          }
+        }).catch(error => alert(error));
     },
     async createUserEmailAndPassword(context, argument) {
-        const localSetUser = new Promise(resolve => {
+        const localSetUser = 
           Firebase
             .auth()
             .createUserWithEmailAndPassword(argument.mail, argument.password)
@@ -61,19 +57,14 @@ const store = new Vuex.Store({
                 mail: argument.mail,
                 password: argument.password, 
               });
-              resolve();
-            });
-        });
-        const dbSetUser = new Promise(resolve => {
+          });
+        const dbSetUser = 
           Firebase.database().ref(dataList).push({
             userName: argument.userName,
             mail: argument.mail,
             password: argument.password,
             wallet: 100,
-          }).then(() => {
-            resolve();
           });
-        });
         return Promise.all([localSetUser, dbSetUser]).then(() => {
           alert("Create Account");
         }).catch(error => alert(error));
@@ -98,25 +89,19 @@ const store = new Vuex.Store({
     },
     async loginEmailAndPassword(context, argument) {
       let userName;
-      const signIn = new Promise((resolve) => {
+      const signIn = 
         Firebase
           .auth()
-          .signInWithEmailAndPassword(argument.mail, argument.password)
-          .then(() => {
-            resolve();
-          });
-      });
-      const getUserName = new Promise((resolve) => {
+          .signInWithEmailAndPassword(argument.mail, argument.password);
+      const getUserName = 
         Firebase.database().ref(dataList)
           .orderByChild('mail')
           .startAt(argument.mail).endAt(argument.mail)
           .once('value', function(snapshot) {
             snapshot.forEach(function(childSnapshot) {
               userName = childSnapshot.val().userName;
-              resolve();
             });
-          })
-      });
+          });
       return Promise.all([signIn, getUserName])
         .then(function() {
           context.commit('setUser', {
