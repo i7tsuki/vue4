@@ -23,41 +23,27 @@ export default {
     }
   },
   methods: {
-    signup: function() {
-      if (this.userName.trim().length < 1) {
-        alert('ユーザー名を入力してください。');
+    async signup() {
+      if (
+        this.userName.trim().length < 1 ||
+        !isMailAdress(this.mail) ||
+        !isPassword(this.password)
+      ) {
+        console.log('バリデーションエラー');
         return;
       }
-      if (!(isMailAdress(this.mail))) {
-        alert('メールアドレスを正しく入力してください。');
-        return;
-      }
-      if (!(isPassword(this.password))) {
-        alert('パスワードは6文字以上で入力してください。');
-        return;
-      } 
-      const that = this;
       const user = {
-        userName: that.userName.trim(), mail: that.mail.trim(), password: that.password.trim()
+        userName: this.userName.trim(), 
+        mail: this.mail.trim(), 
+        password: this.password.trim()
       };
-      Promise.resolve().then(function() {
-        return new Promise(function (resolve) {
-          that.$store.dispatch('createUserAccount', user).then(() => {
-            resolve();
-          });
-        });
-      }).then(function() {
-        if (that.$store.state.loginStatus) {
-          that.$store.dispatch('login', user).then(() => {
-            console.log('ログインしました。');
-          })
-        }
-        else {
-            throw new Error('ログインできませんでした。');
-        }
-      }).then(function() {
-        that.$router.push('/dashboard');
-      }).catch(error => alert(error));
+      try {
+        await this.$store.dispatch('createUserAccount', user);
+        await this.$store.dispatch('login', user);
+        await this.$router.push('/dashboard');
+      } catch(error) {
+        console.log({ error });
+      }
     },
     GotoLogin: function () {
       this.$router.push('/');

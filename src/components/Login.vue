@@ -20,28 +20,22 @@ export default {
     }
   },
   methods: {
-    login: function() {
-      if (!(isMailAdress(this.mail))) {
-        alert('メールアドレスを正しく入力してください。');
+    async login() {
+      if (
+        !isMailAdress(this.mail) || 
+        !isPassword(this.password)
+      ) {
+        console.log('バリデーションエラー');
         return;
       }
-      if (!(isPassword(this.password))) {
-        alert('パスワードを正しく入力してください。');
-        return;
-      }
-      const that = this;
-      new Promise((resolve) => {
-        this.$store.dispatch('login', {
+      try {
+        await this.$store.dispatch('login', {
           mail: this.mail.trim(), password: this.password.trim()
-        }).then(() => {
-          resolve();
         });
-      }).then(function() {
-        console.log(that.$store.state.loginStatus);
-        if (that.$store.state.loginStatus) {
-          that.$router.push('/dashboard');
-        }
-      }).catch(error => alert(error));
+        await this.$router.push('/dashboard');
+      } catch(error) {
+        console.log({ error });
+      }
     },
     GotoSignup: function() {
       this.$router.push('/signup');
