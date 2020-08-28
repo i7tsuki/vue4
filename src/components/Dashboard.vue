@@ -3,7 +3,7 @@
     <div id="header">
       <p>{{ userName }}さんようこそ！！</p>
       <p>残高：{{ wallet }}</p>
-      <p><button>ログアウト</button></p>
+      <p><button @click="logout">ログアウト</button></p>
     </div>
     <h1>ユーザー一覧</h1>
     <table>
@@ -28,11 +28,20 @@ export default {
     }
   },
   methods: {
-    openWallet: function() {
+    logout: function() {
+      this.$store.commit('setUser', {
+        userName: null,
+        mail: null,
+        password: null,
+      });
+      this.$router.push('/login');
     },
-    send: function() {
+  },
+  beforeCreate() {
+    if(this.$store.state.mail === null) {
+      this.$router.push('/login');
     }
-  }
+  },
 }
 </script>
 
