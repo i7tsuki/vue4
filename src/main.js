@@ -103,6 +103,17 @@ const store = new Vuex.Store({
           });
         });
     },
+    logout(context) {
+      Firebase.auth().signOut().then(function() {
+        context.commit('setUser', {
+          userName: null,
+          mail: null,
+          password: null,
+        });
+      }).catch(function(error) {
+        console.log(error);
+      });
+    }
   },
   getters: {
     mail: function(state) {

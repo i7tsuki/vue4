@@ -29,11 +29,7 @@ export default {
   },
   methods: {
     logout: function() {
-      this.$store.commit('setUser', {
-        userName: null,
-        mail: null,
-        password: null,
-      });
+      this.$store.dispatch('logout');
       this.$router.push('/login');
     },
   },
