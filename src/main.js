@@ -17,6 +17,7 @@ const store = new Vuex.Store({
     mail: null,
     password: null,
     wallet: null,
+    users: null
   },
   mutations: {
     setUser(state, argument) {
@@ -24,6 +25,18 @@ const store = new Vuex.Store({
       state.mail = argument.mail;
       state.password = argument.password;
       state.wallet = 100;
+    },
+    clearUsers(state) {
+      state.users = [];
+    },
+    openUsers(state, argument) {
+      state.users.push(
+        {
+          userName: argument.userName,
+          mail: argument.mail,
+          wallet: argument.wallet,
+        }
+      );
     },
   }, 
   actions: {
@@ -113,7 +126,22 @@ const store = new Vuex.Store({
       }).catch(function(error) {
         console.log(error);
       });
-    }
+    },
+    getUsers(context) {
+      context.commit('clearUsers');
+      Firebase.database().ref(dataList)
+        .once('value', function(snapshot) {
+          snapshot.forEach(function(childSnapshot) {
+            if (context.getters.mail !== childSnapshot.val().mail) {
+              context.commit('openUsers', {
+                userName: childSnapshot.val().userName,
+                mail: childSnapshot.val().mail,
+                wallet: childSnapshot.val().wallet,
+              });
+            }
+          });
+        });
+    },
   },
   getters: {
     mail: function(state) {
