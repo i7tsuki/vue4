@@ -24,7 +24,7 @@ const store = new Vuex.Store({
       state.userName = argument.userName;
       state.mail = argument.mail;
       state.password = argument.password;
-      state.wallet = 100;
+      state.wallet = argument.wallet;
     },
     clearUsers(state) {
       state.users = [];
@@ -38,6 +38,9 @@ const store = new Vuex.Store({
         }
       );
     },
+    setWallet(state, wallet) {
+      state.wallet = wallet;
+    }
   }, 
   actions: {
     readUserByEmail(context, mail) {
@@ -93,7 +96,7 @@ const store = new Vuex.Store({
       }
     },
     login(context, argument) {
-      let userName;
+      let userName, wallet;
       const signIn = 
         Firebase
           .auth()
@@ -105,6 +108,7 @@ const store = new Vuex.Store({
           .once('value', function(snapshot) {
             snapshot.forEach(function(childSnapshot) {
               userName = childSnapshot.val().userName;
+              wallet = childSnapshot.val().wallet;
             });
           });
       return Promise.all([signIn, getUserName])
@@ -112,7 +116,8 @@ const store = new Vuex.Store({
           context.commit('setUser', {
             userName: userName,
             mail: argument.mail,
-            password: argument.password
+            password: argument.password,
+            wallet: wallet,
           });
         });
     },
@@ -137,6 +142,30 @@ const store = new Vuex.Store({
                 userName: childSnapshot.val().userName,
                 mail: childSnapshot.val().mail,
                 wallet: childSnapshot.val().wallet,
+              });
+            }
+          });
+        });
+    },
+    setUsersWallet(context, argument) {
+      Firebase.database().ref(dataList)
+        .once('value', function(snapshot) {
+          snapshot.forEach(function(childSnapshot) {
+            if (context.getters.mail === childSnapshot.val().mail) {
+              let wallet = +childSnapshot.val().wallet - +argument.sendingWallet;
+              Firebase.database().ref(dataList).child(childSnapshot.key).update({
+                wallet: wallet
+              });
+              context.commit('setWallet', wallet);
+            }
+          });
+        });
+      Firebase.database().ref(dataList)
+        .once('value', function(snapshot) {
+          snapshot.forEach(function(childSnapshot) {
+            if (argument.sendingUserMail === childSnapshot.val().mail) {
+              Firebase.database().ref(dataList).child(childSnapshot.key).update({
+                wallet: +childSnapshot.val().wallet + +argument.sendingWallet
               });
             }
           });

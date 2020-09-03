@@ -2,7 +2,7 @@
   <div class="dashboard">
     <div id="header">
       <p>{{ loginUserName }}さんようこそ！！</p>
-      <p>残高：{{ loginUserWallet }}</p>
+      <p>残高：{{ nowWallet }}</p>
       <p><button @click="logout">ログアウト</button></p>
     </div>
     <h1>ユーザー一覧</h1>
@@ -10,19 +10,29 @@
         <tr><th>ユーザー名</th></tr>
         <tr v-for="user in users" v-bind:key="user.mail">
             <td>{{ user.userName }}</td>
-            <td><button @click="showModal(user.userName, user.wallet)">walletを見る</button></td>
-            <ModalWallet v-if="IsShowModal" @close="IsShowModal = false">
+            <td><button @click="showModalWallet(user.userName, user.wallet)">walletを見る</button></td>
+            <ModalWallet v-if="IsShowModalWallet" @close="IsShowModalWallet = false">
               <h3 slot="header">{{ selectedUserName }}さんの残高</h3>
               <h3 slot="body">{{ selectedUserWallet }}</h3>
             </ModalWallet>
-            <td><button>送る</button></td>
+            <td><button @click="showModalSend(user.wallet, user.mail)">送る</button></td>
+            <ModalWallet v-if="IsShowModalSend" @close="IsShowModalSend = false">
+              <h3 slot="header">あなたの残高：{{ nowWallet }}</h3>
+              <h3 slot="body">
+                <p>送る金額</p>
+                <p><input type="text" v-model="sendWallet"></p>
+              </h3>
+              <h3 slot="footer">
+                <button @click="submit">送信</button>
+              </h3>
+            </ModalWallet>
         </tr>
     </table>
   </div>
 </template>
 
 <script>
-import ModalWallet from './ModalWallet.vue'
+import ModalWallet from './ModalWallet.vue';
 
 export default {
   name: 'Dashboard',
@@ -30,11 +40,13 @@ export default {
   data: function() {
     return {
       loginUserName: this.$store.state.userName,
-      loginUserWallet: this.$store.state.wallet,
       users: this.$store.state.users,
-      IsShowModal: false,
+      IsShowModalWallet: false,
+      IsShowModalSend: false,
       selectedUserName: null,
       selectedUserWallet: null,
+      selectedUserMail: null,
+      sendWallet: 0,
     }
   },
   methods: {
@@ -42,17 +54,27 @@ export default {
       this.$store.dispatch('logout');
       this.$router.push('/login');
     },
-    openModal() {
-      this.modal = true;
-    },
-    closeModal() {
-      this.modal = false;
-    },
-    showModal(userName, wallet) {
+    showModalWallet(userName, wallet) {
       this.selectedUserName = userName;
       this.selectedUserWallet = wallet;
-      this.IsShowModal = true;
-    }
+      this.IsShowModalWallet = true;
+    },
+    showModalSend(wallet, mail) {
+      this.selectedUserWallet = wallet;
+      this.selectedUserMail = mail;
+      this.IsShowModalSend = true;
+    },
+    submit() {
+      if (this.sendWallet <= 0) {
+        console.log('入力値が0以下のため、送信しませんでした。')
+      } else {
+        this.$store.dispatch('setUsersWallet', {
+          sendingUserMail: this.selectedUserMail,
+          sendingWallet: this.sendWallet,
+        });
+      }
+      this.IsShowModalSend = false;
+    },
   },
   async beforeCreate() {
     if(this.$store.state.mail === null) {
@@ -64,6 +86,11 @@ export default {
       console.log({ error });
     }
   },
+  computed: {
+    nowWallet: function() {
+      return this.$store.state.wallet;
+    }
+  }
 }
 </script>
 
