@@ -132,9 +132,9 @@ const store = new Vuex.Store({
         console.log(error);
       });
     },
-    getUsers(context) {
+    async getUsers(context) {
       context.commit('clearUsers');
-      Firebase.database().ref(dataList)
+      await Firebase.database().ref(dataList)
         .once('value', function(snapshot) {
           snapshot.forEach(function(childSnapshot) {
             if (context.getters.mail !== childSnapshot.val().mail) {
@@ -147,23 +147,16 @@ const store = new Vuex.Store({
           });
         });
     },
-    setUsersWallet(context, argument) {
-      Firebase.database().ref(dataList)
+    async setUsersWallet(context, argument) {
+      await Firebase.database().ref(dataList)
         .once('value', function(snapshot) {
           snapshot.forEach(function(childSnapshot) {
-            if (context.getters.mail === childSnapshot.val().mail) {
-              let wallet = +childSnapshot.val().wallet - +argument.sendingWallet;
-              Firebase.database().ref(dataList).child(childSnapshot.key).update({
-                wallet: wallet
-              });
+            if (context.getters.mail === childSnapshot.val().mail) { //ログインユーザー（送信側のウォレット更新）
+              const wallet = +childSnapshot.val().wallet - +argument.sendingWallet;
+              Firebase.database().ref(dataList).child(childSnapshot.key).update({ wallet });
               context.commit('setWallet', wallet);
             }
-          });
-        });
-      Firebase.database().ref(dataList)
-        .once('value', function(snapshot) {
-          snapshot.forEach(function(childSnapshot) {
-            if (argument.sendingUserMail === childSnapshot.val().mail) {
+            if (argument.sendingUserMail === childSnapshot.val().mail) { //受信側のウォレット更新
               Firebase.database().ref(dataList).child(childSnapshot.key).update({
                 wallet: +childSnapshot.val().wallet + +argument.sendingWallet
               });
@@ -175,6 +168,9 @@ const store = new Vuex.Store({
   getters: {
     mail: function(state) {
       return state.mail
+    },
+    users: function(state) {
+      return state.users
     }
   }
 });
